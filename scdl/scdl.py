@@ -407,6 +407,9 @@ def sync(client: SoundCloud, playlist: BasicAlbumPlaylist, playlist_info, **kwar
         except IOError as ioe:
             logger.error(f'Error trying to read download archive {archive}')
             logger.debug(ioe)
+        except ValueError as verr:
+            logger.error(f'Error trying to convert track ids. Verify archive file is not empty.')
+            logger.debug(verr)
 
     new = [track.id for track in playlist.tracks]
     add = set(new).difference(old) # find tracks to download
@@ -423,11 +426,11 @@ def sync(client: SoundCloud, playlist: BasicAlbumPlaylist, playlist_info, **kwar
                 logger.info(f'Removed {filename}')
             else:
                 logger.info(f'Could not find {filename} to remove')
-        with open(archive,'w') as f:
-          for track_id in old:
-            if track_id not in rem:
-              f.write(str(track_id)+'\n')
-          
+    with open(archive,'w') as f:
+      for track_id in old:
+        if track_id not in rem:
+          f.write(str(track_id)+'\n')
+
     return [track for track in playlist.tracks if track.id in add]
 
 def download_playlist(client: SoundCloud, playlist: BasicAlbumPlaylist, **kwargs):
